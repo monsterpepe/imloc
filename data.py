@@ -26,7 +26,10 @@ class ImageDataset(Dataset): # ImageFolder???
         img_path = os.path.join(self.img_dir, self.labels.iloc[idx, 0])
         # numpy image: H x W x C
         # torch image: C x H x W
-        img = read_image(img_path)
+        try:
+            img = read_image(img_path)
+        except Exception as e:
+            raise Exception(f'Unsupported img file: {img_path}')
 
         labels = self.labels.iloc[idx, 1:]
         labels = np.array(labels, dtype=float)
