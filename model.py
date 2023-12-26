@@ -13,12 +13,7 @@ start = time.time()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Device: {device}')
 
-n_model = 1
-for i in os.listdir(config.MODEL_DIR):
-    if i.endswith('.pth'):
-        n_model += 1
-
-LOG_FILE = os.path.join(config.MODEL_DIR, f'log_{n_model}.txt')
+LOG_FILE = os.path.join(config.MODEL_DIR, f'log.txt')
 
 
 def train(dataloader, model, loss_fn, optimizer, preprocess=None):
@@ -48,7 +43,7 @@ def test(dataloader, model, loss_fn, preprocess=None):
     print('Testing...')
     model.eval()
     avg_loss = 0
-    with torch.no_grad():
+    with torch.no_grad(): # disable gradient calculation for val/test
         for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             if preprocess:
@@ -90,7 +85,7 @@ if __name__ == '__main__':
 
         train(train_dataloader, model, mse, adam, preprocess=preprocess)
 
-        torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, f'model_{n_model}_{n_epoch+1}.pth'))
+        torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, f'model_{n_epoch+1}.pth'))
         print(f'Saved model ({round(time.time()-start)})')
 
         test(val_dataloader, model, mse, preprocess=preprocess)
