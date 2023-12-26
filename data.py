@@ -42,15 +42,12 @@ class ImageDataset(Dataset): # ImageFolder???
         return img, labels
 
 
-# def scale_targets(labels):
-#     lat = labels[0]
-#     lng = labels[1]
-#     y1 = (lat-config.MIN_LAT) / (config.MAX_LAT-config.MIN_LAT)
-#     y2 = (lng-config.MIN_LNG) / (config.MAX_LNG-config.MIN_LNG)
-#     return torch.tensor([y1, y2])
-
-def linear_scale(x):
-    return torch.as_tensor(x-x.min()) / (x.max()-x.min())
+def linear_scale(labels):
+    lat = labels[0]
+    lng = labels[1]
+    y1 = (lat-config.MIN_LAT) / (config.MAX_LAT-config.MIN_LAT)
+    y2 = (lng-config.MIN_LNG) / (config.MAX_LNG-config.MIN_LNG)
+    return torch.tensor([y1, y2])
 
 
 def make_dataloaders():
