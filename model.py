@@ -25,7 +25,7 @@ def train(dataloader, model, loss_fn, optimizer, preprocess=None):
     print('Training...')
     model.train()
     for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
+        X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
         if preprocess:
             X = preprocess(X)
 
@@ -50,7 +50,7 @@ def test(dataloader, model, loss_fn, preprocess=None):
     avg_loss = 0
     with torch.no_grad():
         for batch, (X, y) in enumerate(dataloader):
-            X, y = X.to(device), y.to(device)
+            X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             if preprocess:
                 X = preprocess(X)
 
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     train_dataloader, val_dataloader, test_dataloader = make_dataloaders()
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
 
-    model = ResNet50Pretrained().to(device)
+    model = ResNet50Pretrained().to(device, non_blocking=True)
     mse = nn.MSELoss()
     adam = optim.Adam(
         model.parameters(),
