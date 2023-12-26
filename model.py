@@ -29,7 +29,7 @@ def train(dataloader, model, loss_fn, optimizer, preprocess=None):
         loss = loss_fn(y_pred, y)
 
         # Backpropagation (backward pass)
-        optimizer.zero_grad()
+        optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step() # update weights
 
