@@ -13,7 +13,9 @@ start = time.time()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Device: {device}')
 
-LOG_FILE = os.path.join(config.MODEL_DIR, f'log.txt')
+N_MODEL = len(os.listdir(config.MODEL_DIR)) + 1
+MODEL_DIR = os.path.join(config.MODEL_DIR, str(N_MODEL))
+LOG_FILE = os.path.join(MODEL_DIR, f'log.txt')
 
 
 def train(dataloader, model, loss_fn, optimizer, preprocess=None):
@@ -65,10 +67,14 @@ def test(dataloader, model, loss_fn, preprocess=None):
 
 
 if __name__ == '__main__':
+    os.mkdir(MODEL_DIR)
+
     train_dataloader, val_dataloader, test_dataloader = make_dataloaders()
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
 
     model = ResNet50Pretrained().to(device, non_blocking=True)
+    # model.load_state_dict(torch.load(os.path.join(MODEL_DIR, f'3/model.pth')))
+
     mse = nn.MSELoss()
     adam = optim.Adam(
         model.parameters(),
@@ -77,15 +83,9 @@ if __name__ == '__main__':
         eps=1e-08,
     )
 
-    for n_epoch in range(config.EPOCHS):
-        epoch_log = f'Epoch: {n_epoch+1}'
-        print(epoch_log)
-        with open(LOG_FILE, 'a') as f:
-            f.write(f'{epoch_log}\n')
+    train(train_dataloader, model, mse, adam, preprocess=preprocess)
 
-        train(train_dataloader, model, mse, adam, preprocess=preprocess)
+    torch.save(model.state_dict(), os.path.join(MODEL_DIR, f'model.pth'))
+    print(f'Saved model ({round(time.time()-start)})')
 
-        torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, f'model_{n_epoch+1}.pth'))
-        print(f'Saved model ({round(time.time()-start)})')
-
-        test(val_dataloader, model, mse, preprocess=preprocess)
+    test(val_dataloader, model, mse, preprocess=preprocess)
