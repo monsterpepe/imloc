@@ -79,7 +79,8 @@ def make_dataloaders():
     val_size = int(0.1 * len(dataset))
     test_size = len(dataset) - train_size - val_size
     train_dataset, val_dataset,  test_dataset = random_split(
-        dataset, [train_size, val_size, test_size])
+        dataset, [train_size, val_size, test_size],
+        generator=torch.manual_seed(42))
 
     print('Train, val, test:', len(train_dataset), len(val_dataset), len(test_dataset))
 
