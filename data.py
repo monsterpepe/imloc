@@ -78,9 +78,12 @@ def make_dataloaders():
     train_size = int(0.8 * len(dataset))
     val_size = int(0.1 * len(dataset))
     test_size = len(dataset) - train_size - val_size
+    g = torch.Generator()
+    g.manual_seed(42)
+
     train_dataset, val_dataset,  test_dataset = random_split(
         dataset, [train_size, val_size, test_size],
-        generator=torch.manual_seed(42))
+        generator=g)
 
     print('Train, val, test:', len(train_dataset), len(val_dataset), len(test_dataset))
 
@@ -113,19 +116,7 @@ def make_dataloaders():
 
 if __name__ == '__main__':
     start = time.time()
-    # multiprocessing.set_start_method('spawn')
-
     train_dataloader, val_dataloader, test_dataloader = make_dataloaders()
-    # for batch, (X, y) in enumerate(train_dataloader):
-    #     print(f'Batch: {batch}')
-    #     print(f'X: {X.shape}')
-    #     print(f'y: {y.shape}')
-
-    #     img = X[0]
-    #     plt.imshow(img.permute(1, 2, 0))
-    #     plt.show()
-
-    #     break
     print('Loading train data...')
     for batch, (X, y) in enumerate(train_dataloader):
         if not batch % 100:
