@@ -1,6 +1,6 @@
 __pycache__/
 venv/
 img/
+notes/
 temp/
 config.py
-*.txt
