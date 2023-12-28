@@ -2,7 +2,6 @@ import os
 import time
 
 import torch
-from torch import nn, optim
 
 from data import make_dataloaders
 from net import ResNet50Pretrained, ResNet50_Weights, resnet50
@@ -10,15 +9,10 @@ import config
 
 start = time.time()
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f'Device: {device}')
-
-N_MODEL = len(os.listdir(config.MODEL_DIR)) + 1
-MODEL_DIR = os.path.join(config.MODEL_DIR, str(N_MODEL))
-LOG_FILE = os.path.join(MODEL_DIR, f'log.txt')
+LOG_FILE = os.path.join(config.MODEL_DIR, f'log.txt')
 
 
-def train(dataloader, model, loss_fn, optimizer, preprocess=None):
+def train(dataloader, model, loss_fn, optimizer, preprocess=None, device='cuda'):
     print('Training...')
     model.train()
     for batch, (X, y) in enumerate(dataloader):
@@ -31,7 +25,7 @@ def train(dataloader, model, loss_fn, optimizer, preprocess=None):
         loss = loss_fn(y_pred, y)
 
         # Backpropagation (backward pass)
-        optimizer.zero_grad(set_to_none=True)
+        optimizer.zero_grad(set_to_none=True) # ~2s time reduction
         loss.backward()
         optimizer.step() # update weights
 
@@ -41,7 +35,7 @@ def train(dataloader, model, loss_fn, optimizer, preprocess=None):
             f.write(f'{loss_log}\n')
 
 
-def test(dataloader, model, loss_fn, preprocess=None):
+def test(dataloader, model, loss_fn, preprocess=None, device='cuda'):
     print('Testing...')
     model.eval()
     avg_loss = 0
@@ -64,28 +58,3 @@ def test(dataloader, model, loss_fn, preprocess=None):
     print(avg_loss_log)
     with open(LOG_FILE, 'a') as f:
         f.write(f'{avg_loss_log}\n')
-
-
-if __name__ == '__main__':
-    os.mkdir(MODEL_DIR)
-
-    train_dataloader, val_dataloader, test_dataloader = make_dataloaders()
-    preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
-
-    model = ResNet50Pretrained().to(device, non_blocking=True)
-    # model.load_state_dict(torch.load(os.path.join(MODEL_DIR, f'3/model.pth')))
-
-    mse = nn.MSELoss()
-    adam = optim.Adam(
-        model.parameters(),
-        lr=0.001,
-        betas=(0.9, 0.999),
-        eps=1e-08,
-    )
-
-    train(train_dataloader, model, mse, adam, preprocess=preprocess)
-
-    torch.save(model.state_dict(), os.path.join(MODEL_DIR, f'model.pth'))
-    print(f'Saved model ({round(time.time()-start)})')
-
-    test(val_dataloader, model, mse, preprocess=preprocess)

@@ -12,7 +12,7 @@ class ResNet50Pretrained(nn.Module):
         self.regression_layer = nn.Sequential(
             nn.Linear(2048, 2048),
             nn.ReLU(),
-            nn.Linear(2048, 2048),
+            nn.Linear(2048, 2048), # Test remove one linear layer
             nn.ReLU(),
             nn.Linear(2048, 2),
         )
