@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn, optim
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
 
     model = ResNet50Pretrained().to(device, non_blocking=True)
-    # model.load_state_dict(torch.load(os.path.join(config.MODEL_DIR, f'4/model.pth')))
+    model.load_state_dict(torch.load(os.path.join(config.MODEL_DIR, f'3/model.pth')))
 
     mse = nn.MSELoss()
     adam = optim.Adam(
@@ -27,7 +28,7 @@ if __name__ == '__main__':
 
     train(train_dataloader, model, mse, adam, preprocess=preprocess, device=device)
 
-    torch.save(model.state_dict(), os.path.join(MODEL_DIR, f'model.pth'))
+    torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, f'model.pth'))
     print(f'Saved model')
 
     test(val_dataloader, model, mse, preprocess=preprocess, device=device)
