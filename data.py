@@ -103,7 +103,7 @@ def make_dataloaders():
     )
     test_dataloader = DataLoader(
         test_dataset,
-        batch_size=config.TEST_BATCH_SIZE,
+        # batch_size=config.TEST_BATCH_SIZE,
         shuffle=config.SHUFFLE,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
