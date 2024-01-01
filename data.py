@@ -91,6 +91,7 @@ def make_dataloaders():
         train_dataset,
         batch_size=config.TRAIN_BATCH_SIZE,
         shuffle=config.SHUFFLE,
+        num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )
@@ -98,6 +99,7 @@ def make_dataloaders():
         val_dataset,
         batch_size=config.TEST_BATCH_SIZE,
         shuffle=config.SHUFFLE,
+        num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )
@@ -105,6 +107,7 @@ def make_dataloaders():
         test_dataset,
         # batch_size=config.TEST_BATCH_SIZE,
         shuffle=config.SHUFFLE,
+        num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )

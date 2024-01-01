@@ -2,6 +2,10 @@ import torch
 from torch import nn
 from torchvision.models import resnet50, ResNet50_Weights
 
+# 1. More dense layers
+# 2. Wider dense layers?
+# 3. Other pretrained models ie EfficientNet, Inception
+
 
 class ResNet50Pretrained(nn.Module):
     def __init__(self):
@@ -11,6 +15,10 @@ class ResNet50Pretrained(nn.Module):
         self.resnet50.fc = nn.Identity()
         self.regression_layer = nn.Sequential(
             nn.Linear(2048, 2048),
+            # nn.ReLU(),
+            # nn.Linear(2048, 2048),
+            # nn.ReLU(),
+            # nn.Linear(2048, 2048),
             nn.ReLU(),
             nn.Linear(2048, 2048), # Test remove one linear layer
             nn.ReLU(),
