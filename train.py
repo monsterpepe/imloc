@@ -9,7 +9,8 @@ import config
 
 start = time.time()
 
-LOG_FILE = os.path.join(config.MODEL_DIR, f'log.txt')
+n_model = len(os.listdir(config.MODEL_DIR))
+LOG_FILE = os.path.join(config.MODEL_DIR, str(n_model+1), 'log.txt')
 
 
 def train(dataloader, model, loss_fn, optimizer, preprocess=None, device='cuda'):
