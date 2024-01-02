@@ -47,7 +47,7 @@ def linear_scale(labels):
     lng = labels[1]
     y1 = (lat-config.MIN_LAT) / (config.MAX_LAT-config.MIN_LAT)
     y2 = (lng-config.MIN_LNG) / (config.MAX_LNG-config.MIN_LNG)
-    return torch.tensor([y1, y2])
+    return torch.as_tensor([y1, y2])
 
 
 def make_dataloaders():

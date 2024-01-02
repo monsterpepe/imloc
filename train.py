@@ -35,7 +35,7 @@ def train(dataloader, model, loss_fn, optimizer, preprocess=None, device='cuda')
             f.write(f'{loss_log}\n')
 
 
-def test(dataloader, model, loss_fn, preprocess=None, device='cuda'):
+def validate(dataloader, model, loss_fn, preprocess=None, device='cuda'):
     print('Testing...')
     model.eval()
     avg_loss = 0
