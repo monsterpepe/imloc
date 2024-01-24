@@ -1,6 +1,5 @@
 __pycache__/
-venv/
 img/
-notes/
+old/
 temp/
 config.py

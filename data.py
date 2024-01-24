@@ -1,11 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
 import time
 
 import torch
-# from torch import multiprocessing
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import v2
 from torchvision.io import read_image
@@ -15,11 +13,11 @@ from make_labels_file import make_labels_file
 
 
 class ImageDataset(Dataset): # ImageFolder???
-    def __init__(self, labels_file, img_dir, transform=None, target_transform=None):
+    def __init__(self, labels_file, img_dir, transform=None, label_transform=None):
         self.labels = pd.read_csv(labels_file)
         self.img_dir = img_dir
         self.transform = transform
-        self.target_transform = target_transform
+        self.label_transform = label_transform
 
     def __len__(self):
         return len(self.labels)
@@ -37,8 +35,8 @@ class ImageDataset(Dataset): # ImageFolder???
         labels = np.array(labels, dtype=float)
         if self.transform:
             img = self.transform(img)
-        if self.target_transform:
-            labels = self.target_transform(labels)
+        if self.label_transform:
+            labels = self.label_transform(labels)
         return img, labels
 
 
@@ -50,7 +48,7 @@ def linear_scale(labels):
     return torch.as_tensor([y1, y2])
 
 
-def make_dataloaders():
+def get_loaders(preprocess=None):
     make_labels_file()
 
     transform = v2.Compose([
@@ -58,10 +56,12 @@ def make_dataloaders():
         # v2.CenterCrop(config.IMG_SIZE), # random vs center crop
         v2.RandomCrop(config.IMG_SIZE),
         v2.ToImage(),
-        v2.ToDtype(torch.float32, scale=True)
+        v2.ToDtype(torch.float32, scale=True),
     ])
+    if preprocess:
+        transform = v2.Compose([transform, preprocess])
 
-    target_transform = v2.Compose([
+    label_transform = v2.Compose([
             linear_scale,
             v2.ToDtype(torch.float32),
     ])
@@ -70,9 +70,8 @@ def make_dataloaders():
         labels_file=config.LABELS_FILE,
         img_dir=config.IMG_DIR,
         transform=transform,
-        target_transform=target_transform,
+        label_transform=label_transform,
     )
-
     print(f'Created dataset: {len(dataset)}')
 
     train_size = int(0.8 * len(dataset))
@@ -84,52 +83,50 @@ def make_dataloaders():
     train_dataset, val_dataset,  test_dataset = random_split(
         dataset, [train_size, val_size, test_size],
         generator=g)
-
     print('Train, val, test:', len(train_dataset), len(val_dataset), len(test_dataset))
 
-    train_dataloader = DataLoader(
+    train_loader = DataLoader(
         train_dataset,
-        batch_size=config.TRAIN_BATCH_SIZE,
+        batch_size=config.BATCH_SIZE,
         shuffle=config.SHUFFLE,
         num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )
-    val_dataloader = DataLoader(
+    val_loader = DataLoader(
         val_dataset,
-        batch_size=config.TEST_BATCH_SIZE,
+        batch_size=config.BATCH_SIZE,
         shuffle=config.SHUFFLE,
         num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )
-    test_dataloader = DataLoader(
+    test_loader = DataLoader(
         test_dataset,
-        # batch_size=config.TEST_BATCH_SIZE,
+        batch_size=config.BATCH_SIZE,
         shuffle=config.SHUFFLE,
         num_workers=4,
         pin_memory=config.PIN_MEMORY,
         drop_last=config.DROP_LAST,
     )
+    print('Created train, val, test loaders')
 
-    print('Created train, val, test dataloaders')
-
-    return train_dataloader, val_dataloader, test_dataloader
+    return train_loader, val_loader, test_loader
 
 
 if __name__ == '__main__':
     start = time.time()
-    train_dataloader, val_dataloader, test_dataloader = make_dataloaders()
+    train_loader, val_loader, test_loader = get_loaders()
     print('Loading train data...')
-    for batch, (X, y) in enumerate(train_dataloader):
+    for batch, (X, y) in enumerate(train_loader):
         if not batch % 100:
-            print(f'Train n_batch@{time.time()-start}: {batch}')
+            print(f'Train {batch} batches @ {time.time()-start}')
     print('Loading val data...')
-    for batch, (X, y) in enumerate(val_dataloader):
+    for batch, (X, y) in enumerate(val_loader):
         if not batch % 100:
-            print(f'Val n_batch@{time.time()-start}: {batch}')
+            print(f'Val {batch} batches @ {time.time()-start}')
     print('Loading test data...')
-    for batch, (X, y) in enumerate(test_dataloader):
+    for batch, (X, y) in enumerate(test_loader):
         if not batch % 100:
-            print(f'Test n_batch@{time.time()-start}: {batch}')
-    print('Data loading passed')
+            print(f'Test {batch} batches @ {time.time()-start}')
+    print('All data loaded')
