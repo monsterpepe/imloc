@@ -2,37 +2,61 @@ import os
 import time
 import torch
 from torch import nn, optim
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet50, ResNet50_Weights, efficientnet_v2_s, EfficientNet_V2_S_Weights
 
 import config
 from data import get_loaders
 
 # 1. More dense layers
 # 2. Wider dense layers?
-# 3. Other pretrained models ie EfficientNet, Inception
+# 3. Other pretrained models
+#   - ResNet50
+#   - EfficientNet B0-B4, V2-S
+#   - ViT (TinyViT)
+
+# class Net(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.resnet50 = resnet50(
+#             weights=ResNet50_Weights.IMAGENET1K_V2)
+#         self.resnet50.fc = nn.Identity()
+#         self.regression_layer = nn.Sequential(
+#             nn.Linear(2048, 2048),
+#             nn.ReLU(),
+#             nn.Linear(2048, 2048),
+#             nn.ReLU(),
+#             nn.Linear(2048, 2048),
+#             nn.ReLU(),
+#             nn.Linear(2048, 2048), # Test remove one linear layer
+#             nn.ReLU(),
+#             nn.Linear(2048, 2),
+#         )
+
+#     def forward(self, x):
+#         x = self.resnet50(x)
+#         return self.regression_layer(x)
+
 
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.resnet50 = resnet50(
-            weights=ResNet50_Weights.IMAGENET1K_V2)
-        self.resnet50.fc = nn.Identity()
+        self.efficientnet_v2_s = efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1)
+        self.efficientnet_v2_s.classifier = nn.Identity()
         self.regression_layer = nn.Sequential(
-            nn.Linear(2048, 2048),
-            # nn.ReLU(),
-            # nn.Linear(2048, 2048),
-            # nn.ReLU(),
-            # nn.Linear(2048, 2048),
+            nn.Linear(1280, 1280),
             nn.ReLU(),
-            nn.Linear(2048, 2048), # Test remove one linear layer
+            nn.Linear(1280, 1280),
             nn.ReLU(),
-            nn.Linear(2048, 2),
-        )
+            nn.Linear(1280, 1280),
+            nn.ReLU(),
+            nn.Linear(1280, 1280),
+            nn.ReLU(),
+            nn.Linear(1280, 2),
+            )
 
     def forward(self, x):
-        x = self.resnet50(x)
+        x = self.efficientnet_v2_s(x)
         return self.regression_layer(x)
-
 
 
 def train(dataloader, model, loss_fn, optimizer, device='cuda', log_file=None):
@@ -86,7 +110,8 @@ if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
 
-    preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
+    # preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
+    preprocess = EfficientNet_V2_S_Weights.IMAGENET1K_V1.transforms(antialias=True)
     train_loader, val_loader, test_loader = get_loaders(preprocess)
 
     model = Net().to(device, non_blocking=True)
@@ -106,6 +131,6 @@ if __name__ == '__main__':
 
     start = time.time()
     train(train_loader, model, mse, adam, device=device, log_file=log_file)
-    torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, f'model.pth'))
+    torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, str(n_model), f'model.pth'))
     print('Saved model')
     test(val_loader, model, mse, device=device, log_file=log_file)
