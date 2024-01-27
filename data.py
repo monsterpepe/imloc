@@ -12,7 +12,7 @@ import config
 from make_labels_file import make_labels_file
 
 
-class ImageDataset(Dataset): # ImageFolder???
+class ImageDataset(Dataset):
     def __init__(self, labels_file, img_dir, transform=None, label_transform=None):
         self.labels = pd.read_csv(labels_file)
         self.img_dir = img_dir
@@ -52,7 +52,7 @@ def get_loaders(preprocess=None):
     make_labels_file()
 
     transform = v2.Compose([
-        v2.Resize(config.IMG_SIZE, antialias=True), # shortest edge is config.IMG_SIZE
+        v2.Resize(config.IMG_SIZE, antialias=True), # resize shortest edge to config.IMG_SIZE
         # v2.CenterCrop(config.IMG_SIZE), # random vs center crop
         v2.RandomCrop(config.IMG_SIZE),
         v2.ToImage(),

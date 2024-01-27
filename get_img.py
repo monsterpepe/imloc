@@ -26,7 +26,7 @@ def init_coords():
     return float(lat), float(lng)
 
 
-async def get_request(img_url, img_name): # asyncio stuff
+async def get(img_url, img_name):
     async with aiohttp.ClientSession() as session:
         async with session.get(img_url) as response:
             content = await response.read()
@@ -40,7 +40,7 @@ async def get_request(img_url, img_name): # asyncio stuff
 async def download_imgs(img_urls):
     gets = []
     for img_name, img_url in img_urls.items():
-        gets.append(get_request(img_url, img_name))
+        gets.append(get(img_url, img_name))
     await asyncio.gather(*gets)
 
 
@@ -48,7 +48,6 @@ if __name__ == '__main__':
     lat, lng = init_coords()
     url = 'https://graph.mapillary.com/images'
     params = {
-        # 'access_token': config.TOKEN, # include in headers
         'fields': 'geometry,captured_at,thumb_1024_url',
         'is_pano': False,
         'limit': config.BBOX_NUM_IMG,
@@ -67,7 +66,7 @@ if __name__ == '__main__':
                 f.write(f'{bbox_log}\n')
 
             next_lng = round(lng+config.BBOX_SIZE, config.COORD_ACC)
-            params['bbox'] = f'{lng},{lat},{next_lng},{next_lat}' # minLon, minLat, maxLon, maxLat of a "bbox"
+            params['bbox'] = f'{lng},{lat},{next_lng},{next_lat}' # minLon, minLat, maxLon, maxLat of "bbox"
             r = requests.get(url, params=params, headers=headers)
             data = r.json()['data']
 
@@ -84,9 +83,9 @@ if __name__ == '__main__':
                     except KeyError as e:
                         print(e)
 
-            if config.ASYNC: # FASTTTT
+            if config.ASYNC:
                 asyncio.run(download_imgs(img_urls))
-            else: # sync request SLOWWWW
+            else:
                 for img_name, img_url in img_urls.items():
                     r = requests.get(img_url)
                     with open(os.path.join(config.IMG_DIR, f'{img_name}.jpg'), 'wb') as f:
@@ -96,7 +95,7 @@ if __name__ == '__main__':
                         f.write(f'{img_name}\n')
 
             lng = next_lng
-            time.sleep(0.01) # no spam
+            time.sleep(0.01)
 
         lng = config.MIN_LNG
         lat = next_lat

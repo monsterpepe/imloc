@@ -2,17 +2,11 @@ import os
 import time
 import torch
 from torch import nn, optim
-from torchvision.models import resnet50, ResNet50_Weights, efficientnet_v2_s, EfficientNet_V2_S_Weights
+from torchvision.models import resnet50, ResNet50_Weights
 
 import config
 from data import get_loaders
 
-# 1. More dense layers
-# 2. Wider dense layers?
-# 3. Other pretrained models
-#   - ResNet50
-#   - EfficientNet B0-B4, V2-S
-#   - ViT (TinyViT)
 
 class Net(nn.Module):
     def __init__(self):
@@ -27,7 +21,7 @@ class Net(nn.Module):
             nn.ReLU(),
             nn.Linear(2048, 2048),
             nn.ReLU(),
-            nn.Linear(2048, 2048), # Test remove one linear layer
+            nn.Linear(2048, 2048),
             nn.ReLU(),
             nn.Linear(2048, 2),
         )
@@ -35,28 +29,6 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.resnet50(x)
         return self.regression_layer(x)
-
-
-# class Net(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.efficientnet_v2_s = efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1)
-#         self.efficientnet_v2_s.classifier = nn.Identity()
-#         self.regression_layer = nn.Sequential(
-#             nn.Linear(1280, 1280),
-#             nn.ReLU(),
-#             nn.Linear(1280, 1280),
-#             nn.ReLU(),
-#             nn.Linear(1280, 1280),
-#             nn.ReLU(),
-#             nn.Linear(1280, 1280),
-#             nn.ReLU(),
-#             nn.Linear(1280, 2),
-#             )
-
-#     def forward(self, x):
-#         x = self.efficientnet_v2_s(x)
-#         return self.regression_layer(x)
 
 
 def train(dataloader, model, loss_fn, optimizer, device='cuda', log_file=None):
@@ -70,11 +42,10 @@ def train(dataloader, model, loss_fn, optimizer, device='cuda', log_file=None):
         loss = loss_fn(y_pred, y)
 
         # Backpropagation (backward pass)
-        optimizer.zero_grad(set_to_none=True) # ~2s time reduction
+        optimizer.zero_grad(set_to_none=True) # set_to_none for time reduction
         loss.backward()
         optimizer.step() # update weights
 
-        # print(f'Pred: {y_pred}, Actual: {y}')
         loss_log = f'Train loss ({batch+1}@{round(time.time()-start)}): {loss.item()}'
         print(loss_log)
         if log_file:
@@ -114,7 +85,6 @@ if __name__ == '__main__':
     print(f'Device: {device}')
 
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
-    # preprocess = EfficientNet_V2_S_Weights.IMAGENET1K_V1.transforms(antialias=True)
     train_loader, val_loader, test_loader = get_loaders(preprocess)
     model = Net().to(device, non_blocking=True)
 

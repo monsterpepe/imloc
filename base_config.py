@@ -20,11 +20,7 @@ MODEL_DIR = 'models/'
 
 # Data
 IMG_SIZE = 576 # shortest edge
-TRAIN_BATCH_SIZE = 64
-TEST_BATCH_SIZE = 128
+BATCH_SIZE = 32
 SHUFFLE = True
 PIN_MEMORY = True
 DROP_LAST = True
-
-# Model
-EPOCHS = 1
