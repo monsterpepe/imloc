@@ -14,49 +14,49 @@ from data import get_loaders
 #   - EfficientNet B0-B4, V2-S
 #   - ViT (TinyViT)
 
-# class Net(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.resnet50 = resnet50(
-#             weights=ResNet50_Weights.IMAGENET1K_V2)
-#         self.resnet50.fc = nn.Identity()
-#         self.regression_layer = nn.Sequential(
-#             nn.Linear(2048, 2048),
-#             nn.ReLU(),
-#             nn.Linear(2048, 2048),
-#             nn.ReLU(),
-#             nn.Linear(2048, 2048),
-#             nn.ReLU(),
-#             nn.Linear(2048, 2048), # Test remove one linear layer
-#             nn.ReLU(),
-#             nn.Linear(2048, 2),
-#         )
-
-#     def forward(self, x):
-#         x = self.resnet50(x)
-#         return self.regression_layer(x)
-
-
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.efficientnet_v2_s = efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1)
-        self.efficientnet_v2_s.classifier = nn.Identity()
+        self.resnet50 = resnet50(
+            weights=ResNet50_Weights.IMAGENET1K_V2)
+        self.resnet50.fc = nn.Identity()
         self.regression_layer = nn.Sequential(
-            nn.Linear(1280, 1280),
+            nn.Linear(2048, 2048),
             nn.ReLU(),
-            nn.Linear(1280, 1280),
+            nn.Linear(2048, 2048),
             nn.ReLU(),
-            nn.Linear(1280, 1280),
+            nn.Linear(2048, 2048),
             nn.ReLU(),
-            nn.Linear(1280, 1280),
+            nn.Linear(2048, 2048), # Test remove one linear layer
             nn.ReLU(),
-            nn.Linear(1280, 2),
-            )
+            nn.Linear(2048, 2),
+        )
 
     def forward(self, x):
-        x = self.efficientnet_v2_s(x)
+        x = self.resnet50(x)
         return self.regression_layer(x)
+
+
+# class Net(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.efficientnet_v2_s = efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.IMAGENET1K_V1)
+#         self.efficientnet_v2_s.classifier = nn.Identity()
+#         self.regression_layer = nn.Sequential(
+#             nn.Linear(1280, 1280),
+#             nn.ReLU(),
+#             nn.Linear(1280, 1280),
+#             nn.ReLU(),
+#             nn.Linear(1280, 1280),
+#             nn.ReLU(),
+#             nn.Linear(1280, 1280),
+#             nn.ReLU(),
+#             nn.Linear(1280, 2),
+#             )
+
+#     def forward(self, x):
+#         x = self.efficientnet_v2_s(x)
+#         return self.regression_layer(x)
 
 
 def train(dataloader, model, loss_fn, optimizer, device='cuda', log_file=None):
@@ -74,6 +74,7 @@ def train(dataloader, model, loss_fn, optimizer, device='cuda', log_file=None):
         loss.backward()
         optimizer.step() # update weights
 
+        # print(f'Pred: {y_pred}, Actual: {y}')
         loss_log = f'Train loss ({batch+1}@{round(time.time()-start)}): {loss.item()}'
         print(loss_log)
         if log_file:
@@ -106,31 +107,35 @@ def test(dataloader, model, loss_fn, device='cuda', log_file=None):
             f.write(f'{avg_loss_log}\n')
 
 
+euclidean = lambda a, b: torch.sqrt(((a-b)**2).sum(1)).mean()
+
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
 
-    # preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
-    preprocess = EfficientNet_V2_S_Weights.IMAGENET1K_V1.transforms(antialias=True)
+    preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
+    # preprocess = EfficientNet_V2_S_Weights.IMAGENET1K_V1.transforms(antialias=True)
     train_loader, val_loader, test_loader = get_loaders(preprocess)
-
     model = Net().to(device, non_blocking=True)
-    print(model)
-    n_model = len(os.listdir(config.MODEL_DIR))
-    os.mkdir(os.path.join(config.MODEL_DIR, str(n_model+1)))
-    if n_model: # continue training from most old model
-        model.load_state_dict(torch.load(os.path.join(config.MODEL_DIR, str(n_model), 'model.pth')))
-    log_file = os.path.join(config.MODEL_DIR, str(n_model+1), 'log.txt')
-    mse = nn.MSELoss()
-    adam = optim.Adam(
-        model.parameters(),
-        lr=0.001,
-        betas=(0.9, 0.999),
-        eps=1e-08,
-    )
 
-    start = time.time()
-    train(train_loader, model, mse, adam, device=device, log_file=log_file)
-    torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, str(n_model), f'model.pth'))
-    print('Saved model')
-    test(val_loader, model, mse, device=device, log_file=log_file)
+    while True:
+        print(model)
+        n_model = len(os.listdir(config.MODEL_DIR))
+        if n_model: # continue training from last model
+            model.load_state_dict(torch.load(os.path.join(config.MODEL_DIR, str(n_model), 'model.pth')))
+        # mse = nn.MSELoss()
+        adam = optim.Adam(
+            model.parameters(),
+            lr=0.001,
+            betas=(0.9, 0.999),
+            eps=1e-08,
+        )
+        os.mkdir(os.path.join(config.MODEL_DIR, str(n_model+1)))
+        log_file = os.path.join(config.MODEL_DIR, str(n_model+1), 'log.txt')
+
+        print(f'Epoch: {n_model+1}')
+        start = time.time()
+        train(train_loader, model, euclidean, adam, device=device, log_file=log_file)
+        torch.save(model.state_dict(), os.path.join(config.MODEL_DIR, str(n_model+1), f'model.pth'))
+        print('Saved model')
+        test(val_loader, model, euclidean, device=device, log_file=log_file)
