@@ -45,6 +45,8 @@ async def download_imgs(img_urls):
 
 
 if __name__ == '__main__':
+    if config.IMG_DIR not in os.listdir():
+        os.mkdir(config.IMG_DIR)
     lat, lng = init_coords()
     url = 'https://graph.mapillary.com/images'
     params = {

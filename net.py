@@ -83,6 +83,8 @@ euclidean = lambda a, b: torch.sqrt(((a-b)**2).sum(1)).mean()
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
+    if config.MODEL_DIR not in os.listdir():
+        os.mkdir(config.MODEL_DIR)
 
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
     train_loader, val_loader, test_loader = get_loaders(preprocess)
