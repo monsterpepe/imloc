@@ -14,9 +14,9 @@ BBOX_NUM_IMG = 30
 COORD_ACC = 3
 
 # Files
-IMG_DIR = 'img/'
+IMG_DIR = 'img'
 LABELS_FILE = 'img/labels.csv'
-MODEL_DIR = 'models/'
+MODEL_DIR = 'models'
 
 # Data
 IMG_SIZE = 576 # shortest edge

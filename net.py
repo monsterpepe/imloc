@@ -87,7 +87,7 @@ if __name__ == '__main__':
         os.mkdir(config.MODEL_DIR)
 
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
-    train_loader, val_loader, test_loader = get_loaders(preprocess)
+    train_loader, val_loader, _ = get_loaders(preprocess)
     model = Net().to(device, non_blocking=True)
 
     while True:

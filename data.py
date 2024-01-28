@@ -48,9 +48,7 @@ def linear_scale(labels):
     return torch.as_tensor([y1, y2])
 
 
-def get_loaders(preprocess=None):
-    make_labels_file()
-
+def get_transform(preprocess=None):
     transform = v2.Compose([
         v2.Resize(config.IMG_SIZE, antialias=True), # resize shortest edge to config.IMG_SIZE
         # v2.CenterCrop(config.IMG_SIZE), # random vs center crop
@@ -60,11 +58,16 @@ def get_loaders(preprocess=None):
     ])
     if preprocess:
         transform = v2.Compose([transform, preprocess])
-
     label_transform = v2.Compose([
             linear_scale,
             v2.ToDtype(torch.float32),
     ])
+    return transform, label_transform
+
+
+def get_loaders(preprocess=None):
+    make_labels_file()
+    transform, label_transform = get_transform(preprocess)
 
     dataset = ImageDataset(
         labels_file=config.LABELS_FILE,
