@@ -9,7 +9,8 @@ if __name__ == '__main__':
     train_losses = []
     val_losses = []
     avg_val_losses = []
-    for model in range(n_models):
+    models = []
+    for model in range(1, n_models+1):
         try:
             with open(os.path.join(model_dir, str(model), 'log.txt')) as f:
                 s = f.read()
@@ -25,13 +26,14 @@ if __name__ == '__main__':
                     if 'avg' in i:
                         loss = float(i.split(': ')[-1])
                         avg_val_losses.append(loss)
+                        models.append(model)
                     else:
                         if n % 10: # too much data
                             continue
                         loss = float(i.split(': ')[-1])
                         val_losses.append(loss)
-        except:
-            pass
+        except FileNotFoundError:
+            print(f'No log for model {model}')
 
     win = 400
     train_sma = []
@@ -49,6 +51,6 @@ if __name__ == '__main__':
     ax1.title.set_text('Train loss')
     ax2.plot(range(len(val_sma)), val_sma)
     ax2.title.set_text('Val loss')
-    ax3.plot(range(1, len(avg_val_losses)+1), avg_val_losses)
+    ax3.plot(models, avg_val_losses)
     ax3.title.set_text('Avg val loss per epoch')
     plt.show()
