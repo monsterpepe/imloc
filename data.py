@@ -6,7 +6,7 @@ import time
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import v2
-from torchvision.io import read_image
+from torchvision.io import read_image, ImageReadMode
 
 import config
 from make_labels_file import make_labels_file
@@ -23,13 +23,13 @@ class ImageDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.labels.iloc[idx, 0])
+        img_file = os.path.join(self.img_dir, self.labels.iloc[idx, 0])
         # numpy image: H x W x C
         # torch image: C x H x W
         try:
-            img = read_image(img_path)
+            img = read_image(img_file, ImageReadMode.RGB)
         except Exception as e:
-            raise Exception(img_path)
+            raise Exception(img_file)
 
         labels = self.labels.iloc[idx, 1:]
         labels = np.array(labels, dtype=float)

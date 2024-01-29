@@ -1,6 +1,6 @@
 import os
 import torch
-from torchvision.io import read_image
+from torchvision.io import read_image, ImageReadMode
 from torchvision.models import ResNet50_Weights
 
 import config
@@ -11,7 +11,7 @@ from net import Net
 def pred(img_file, n_model=None):
     preprocess = ResNet50_Weights.IMAGENET1K_V2.transforms(antialias=True)
     transform, _ = get_transform(preprocess)
-    img = read_image(img_file)
+    img = read_image(img_file, ImageReadMode.RGB)
     X = transform(img)
     X = X.view(1, *X.shape)
 
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     torch.manual_seed(42) # remove output randomness
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
-    lat, lng = pred('img.jpg', n_model=64)
+    lat, lng = pred('img.jpg', n_model=80)
     print(f'Pred: ({lat}, {lng})')
