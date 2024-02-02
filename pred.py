@@ -30,9 +30,20 @@ def pred(img_file, n_model=None):
     return lat, lng
 
 
+def avg_pred(img_file, n_model=None, n=10):
+    lats = []
+    lngs = []
+    for _ in range(n):
+        lat, lng = pred(img_file, n_model=n_model)
+        lats.append(lat)
+        lngs.append(lng)
+    return sum(lats) / n, sum(lngs) / n
+
+
 if __name__ == '__main__':
     torch.manual_seed(42) # remove output randomness
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
-    lat, lng = pred('img.jpg', n_model=80)
-    print(f'Pred: ({lat}, {lng})')
+    for i in os.listdir('pred_img'):
+        lat, lng = pred(f'pred_img/{i}', n_model=120)
+        print(f'{i}: ({lat}, {lng})')
