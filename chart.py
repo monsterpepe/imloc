@@ -5,6 +5,7 @@ import config
 
 if __name__ == '__main__':
     model_dir = 'model'
+    # model_dir = 'old/resnet50-4-lr0.003'
     n_models = len(os.listdir(model_dir))
     train_losses = []
     val_losses = []
@@ -35,7 +36,7 @@ if __name__ == '__main__':
         except FileNotFoundError:
             print(f'No log for model {model}')
 
-    win = 400
+    win = 500
     train_sma = []
     for i in range(len(train_losses)-win+1):
         train_sma.append(np.mean(train_losses[i:i+win]))
