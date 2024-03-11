@@ -45,5 +45,5 @@ if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Device: {device}')
     for i in os.listdir('pred_img'):
-        lat, lng = pred(f'pred_img/{i}', n_model=120)
+        lat, lng = pred(f'pred_img/{i}', n_model=128)
         print(f'{i}: ({lat}, {lng})')
