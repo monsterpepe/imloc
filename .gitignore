@@ -1,5 +1,7 @@
 __pycache__/
 img/
+pred_img/
+model/
 old/
 temp/
 config.py
